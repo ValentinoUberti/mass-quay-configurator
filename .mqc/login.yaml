@@ -1,0 +1,16 @@
+---
+quay_endpoint_login:
+  - quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
+    quay_token: some-token
+  - quay_endpoint: example-registry-quay-quay2.apps.ocphub.lab.seeweb
+    quay_token: some-token
+mirror_repository:
+  - organization: exampleorg1
+    repository: alpine
+    ext_registry_username: valeidm
+    ext_registry_password: mypass
+  - organization: exampleorg2
+    repository: alpine
+    ext_registry_username: giorgia
+    ext_registry_password: mypass
+
