@@ -1,7 +1,7 @@
 ![logo](docs/images/logogit.png)
 
 
-## Mass Quay Configurator (mqc) configures multiple Red Hat Quay instance in terms of:
+## Mass Quay Configurator (mqc) configures multiple Red Hat Quay instances in terms of:
 
 - Organizations
   - Teams
