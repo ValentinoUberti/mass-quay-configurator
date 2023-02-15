@@ -1,4 +1,4 @@
-![logo](docs/images/logo.png)
+![logo](docs/images/logogit.png)
 
 
 ## Mass Quay Configurator (mqc) configures multiple Red Hat Quay instance in terms of:
