@@ -13,4 +13,12 @@ mirror_repository:
     repository: alpine
     ext_registry_username: giorgia
     ext_registry_password: mypass
+  - organization: redhat
+    repository: ubi9
+    ext_registry_username: 4538218|quay-mirror-account
+    ext_registry_password: mypass
+  - organization: redhat
+    repository: rhel9_nginx-120
+    ext_registry_username: 4538218|quay-mirror-account
+    ext_registry_password: mypass
 

@@ -440,8 +440,12 @@ impl QuayXmlConfig {
                     corrected_description.insert_str(0, r.description.as_str());
                 }
                 if self.log_verbosity >= 5 {
-                    info!("{:?}", r);
-                }
+                    if r.status_code.is_success() {
+                        info!("{:?}", r);
+                    } else {
+                        warn!("{:?}", r);
+                    }
+                } 
                 //println!("------------------------");
                 //println!("{} {}", description, corrected_description);
                 //println!("Status code: {}", r.status_code);
@@ -520,6 +524,7 @@ impl QuayXmlConfig {
         let mut handles_all_extra_user_permissions = Vec::new();
         let mut handles_all_extra_team_permissions = Vec::new();
         let mut handles_all_mirror_configurations = Vec::new();
+        let mut handles_all_mirror_sync_configurations = Vec::new();
 
         let orgs = self.get_organizations();
 
@@ -597,6 +602,12 @@ impl QuayXmlConfig {
                                 ))
                             }
                         }
+
+                        if let Some(_groupdn) = &team.groupdn {
+                            handles_all_mirror_sync_configurations
+                                .push(org.create_team_sync(&team, quay_fn_arguments.clone()));
+                           
+                        }
                     } // Team name
                 }
             } // Teams
@@ -654,6 +665,7 @@ impl QuayXmlConfig {
         }
 
         let total_requestes = handles_all_organizations.len()
+            + handles_all_mirror_sync_configurations.len()
             + handles_all_robots.len()
             + handles_all_teams.len()
             + handles_all_repositories.len()
@@ -723,6 +735,25 @@ impl QuayXmlConfig {
             "Teams members added in  {} seconds.",
             now.elapsed().as_secs_f32()
         );
+
+        // Activating team sync  handles_all_mirror_sync_configurations
+
+        info!(
+            "Configuring {} team ldap sync...",
+            handles_all_mirror_sync_configurations.len()
+        );
+        let now = Instant::now();
+        let results = join_all(handles_all_mirror_sync_configurations);
+
+        for result in results.await {
+            self.print_result("Team ldap sync ->".to_string(), result);
+        }
+
+        info!(
+            "Teams sync activated  {} seconds.",
+            now.elapsed().as_secs_f32()
+        );
+
         // Create repositories
         info!(
             "Creating {} repositories...",

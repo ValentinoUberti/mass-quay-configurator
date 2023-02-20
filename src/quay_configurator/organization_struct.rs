@@ -4,7 +4,7 @@ use governor::clock::{QuantaClock, QuantaInstant};
 use governor::middleware::NoOpMiddleware;
 use governor::state::{InMemoryState, NotKeyed};
 use governor::{self, RateLimiter};
-use log::debug;
+use log::{debug};
 use std::sync::Arc;
 use std::{collections::HashMap, error::Error, time::Duration};
 use substring::Substring;
@@ -672,6 +672,7 @@ impl Actions for OrganizationYaml {
                 "https://{}/api/v1/organization/{}/team/{}/syncing",
                 &self.quay_endpoint, &self.quay_organization, team_name
             );
+
             let mut body = HashMap::new();
 
             if let Some(groupdn) = &team.groupdn {
@@ -691,6 +692,15 @@ impl Actions for OrganizationYaml {
                     )
                     .await?;
 
+                /*
+                if !response.status_code.is_success() {
+                    if response.status_code != StatusCode::INTERNAL_SERVER_ERROR {
+                        warn!("{:?}", response.description);
+                        warn!("{:?}", response.response);
+                        warn!("{:?}", response.status_code);
+                    }
+                }
+                */
                 return Ok(response.clone());
             } // groupdn
         }
@@ -1158,7 +1168,7 @@ pub struct Team {
     role: Option<String>,
 
     #[serde(rename = "group_dn")]
-    groupdn: Option<String>,
+    pub groupdn: Option<String>,
 }
 
 /// Repository's member structs.
