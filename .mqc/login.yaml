@@ -1,9 +1,9 @@
 ---
 quay_endpoint_login:
   - quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
-    quay_token: some-token
+    quay_token: 
   - quay_endpoint: example-registry-quay-quay2.apps.ocphub.lab.seeweb
-    quay_token: some-token
+    quay_token: 
 mirror_repository:
   - organization: exampleorg1
     repository: alpine

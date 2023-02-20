@@ -87,15 +87,27 @@ impl QuayXmlConfig {
 
         while let Some(f) = files.next_entry().await? {
             info!("Loading config from  {:?} ", f.file_name());
-            let f = File::open(f.path())?;
 
-            match serde_yaml::from_reader(f) {
-                Ok(scrape_config) => {
-                    self.organization.push(scrape_config);
+            match f
+                .path()
+                .extension()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or_default()
+            {
+                "yaml" | "yml" => {
+                    let f = File::open(f.path())?;
+
+                    match serde_yaml::from_reader(f) {
+                        Ok(scrape_config) => {
+                            self.organization.push(scrape_config);
+                        }
+                        Err(e) => {
+                            error!("{:?}", e)
+                        }
+                    }
                 }
-                Err(e) => {
-                    error!("{:?}", e)
-                }
+                _ => {}
             }
         }
 
@@ -141,12 +153,9 @@ impl QuayXmlConfig {
                 Ok(org) => {
                     info!("Config syntax of {:?} verified.  ", f.file_name());
 
-                    
                     let mut quay_endpoints: Vec<String> = Vec::new();
                     let mut quay_mirror_login = QuayMirrorLogin::default();
 
-
-                    
                     //Mirror login repository not present in login.yaml
                     let mut present_quay_mirror_login = QuayMirrorLogin::default();
 
@@ -154,18 +163,12 @@ impl QuayXmlConfig {
 
                     quay_endpoints.push(org.quay_endpoint.clone());
 
-                    
-
                     match org.replicate_to {
                         Some(replicated_to) => {
                             quay_endpoints.extend(replicated_to);
-
-                            
                         }
                         None => {}
                     }
-
-                    
 
                     // Extract repositories mirror login informations
                     for repo in &org.repositories {
@@ -217,28 +220,19 @@ impl QuayXmlConfig {
 
                     quay_endpoints = quay_endpoints.unique();
 
-                    
-                    
-                    
-
                     let msg = &format!("Found {} unique Quay endpoint(s)", quay_endpoints.len());
                     Self::write_log(self.log_verbosity, &msg).await;
 
                     for q in &quay_endpoints {
-
-                       
-
                         if let Some(_t) = self
                             .quay_login_configs
                             .get_token_from_quay_endopoint(q.to_string())
                         {
-                       
                         } else {
                             let err_str = format!("No token found for {} Quay endpoint. Please run 'mqc login. Ignoring this Quay endpoint.",q.to_string());
                             error!("{}", err_str);
                             continue;
                         }
-                        
                     }
 
                     // Exit if halt_on_error==true.
@@ -573,29 +567,39 @@ impl QuayXmlConfig {
 
             handles_all_organizations.push(org.create_organization(quay_fn_arguments.clone()));
 
-            for robot in &org.robots {
-                handles_all_robots.push(org.create_robot(robot, quay_fn_arguments.clone()));
-            }
-            for team in &org.teams {
-                handles_all_teams.push(org.create_team(team, quay_fn_arguments.clone()));
-
-                for member in &team.members.users {
-                    handles_all_team_members.push(org.add_user_to_team(
-                        &team.name,
-                        &member,
-                        quay_fn_arguments.clone(),
-                    ))
-                }
-
-                for member in &team.members.robots {
-                    handles_all_team_members.push(org.add_robot_to_team(
-                        &team.name,
-                        &member,
-                        quay_fn_arguments.clone(),
-                    ))
+            if let Some(robots) = &org.robots {
+                for robot in robots {
+                    handles_all_robots.push(org.create_robot(robot, quay_fn_arguments.clone()));
                 }
             }
 
+            if let Some(teams) = &org.teams {
+                for team in teams {
+                    handles_all_teams.push(org.create_team(team, quay_fn_arguments.clone()));
+
+                    if let Some(team_name) = &team.name {
+                        if let Some(users_member) = &team.members.users {
+                            for member in users_member {
+                                handles_all_team_members.push(org.add_user_to_team(
+                                    &team_name,
+                                    &member,
+                                    quay_fn_arguments.clone(),
+                                ))
+                            }
+                        }
+
+                        if let Some(robots_member) = &team.members.robots {
+                            for member in robots_member {
+                                handles_all_team_members.push(org.add_robot_to_team(
+                                    &team_name,
+                                    &member,
+                                    quay_fn_arguments.clone(),
+                                ))
+                            }
+                        }
+                    } // Team name
+                }
+            } // Teams
             for repository in &org.repositories {
                 handles_all_repositories
                     .push(org.create_repository(repository, quay_fn_arguments.clone()));
@@ -610,14 +614,16 @@ impl QuayXmlConfig {
                     .push(org.create_repository_mirror(&repository, quay_fn_arguments.clone()));
 
                 if let Some(permissions) = &repository.permissions {
-                    for robot in &permissions.robots {
-                        handles_all_repositories_permissions.push(
-                            org.grant_robot_permission_to_repository(
-                                &repository.name,
-                                &robot,
-                                quay_fn_arguments.clone(),
-                            ),
-                        )
+                    if let Some(robots) = &permissions.robots {
+                        for robot in robots {
+                            handles_all_repositories_permissions.push(
+                                org.grant_robot_permission_to_repository(
+                                    &repository.name,
+                                    &robot,
+                                    quay_fn_arguments.clone(),
+                                ),
+                            )
+                        }
                     }
 
                     for team in &permissions.teams {
@@ -631,14 +637,17 @@ impl QuayXmlConfig {
                             )
                         }
                     }
-                    for user in &permissions.users {
-                        handles_all_repositories_permissions.push(
-                            org.grant_user_permission_to_repository(
-                                &repository.name,
-                                &user,
-                                quay_fn_arguments.clone(),
-                            ),
-                        )
+
+                    if let Some(users) = &permissions.users {
+                        for user in users {
+                            handles_all_repositories_permissions.push(
+                                org.grant_user_permission_to_repository(
+                                    &repository.name,
+                                    &user,
+                                    quay_fn_arguments.clone(),
+                                ),
+                            )
+                        }
                     }
                 }
             }

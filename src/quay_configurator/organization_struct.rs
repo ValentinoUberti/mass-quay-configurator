@@ -1,4 +1,3 @@
-
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use governor::clock::{QuantaClock, QuantaInstant};
@@ -80,6 +79,11 @@ pub trait Actions {
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<QuayResponse, Box<dyn Error>>;
     async fn create_team(
+        &self,
+        team: &Team,
+        quay_fn_arguments: QuayFnArguments,
+    ) -> Result<QuayResponse, Box<dyn Error>>;
+    async fn create_team_sync(
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
@@ -167,10 +171,14 @@ impl Actions for OrganizationYaml {
         &self,
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<QuayResponse, Box<dyn Error>> {
+        let empty = "".to_string();
         let endpoint = format!("https://{}/api/v1/organization/", &self.quay_endpoint);
         let mut body = HashMap::new();
         body.insert("name", &self.quay_organization);
-        body.insert("email", &self.quay_organization_role_email);
+        body.insert(
+            "email",
+            &self.quay_organization_role_email.as_ref().unwrap_or(&empty),
+        );
 
         let response = &self
             .send_request(
@@ -313,17 +321,23 @@ impl Actions for OrganizationYaml {
                                                     .to_string(),
                                                 role.to_string(),
                                             );
-                                            actual_repo_permissions
-                                                .robots
-                                                .push(single_robot_permission);
+
+                                            if let Some(ref mut robot_array) =
+                                                actual_repo_permissions.robots
+                                            {
+                                                robot_array.push(single_robot_permission);
+                                            }
                                         } else {
                                             let single_user_permission = UserElement::new(
                                                 name.to_string(),
                                                 role.to_string(),
                                             );
-                                            actual_repo_permissions
-                                                .users
-                                                .push(single_user_permission);
+
+                                            if let Some(ref mut users_array) =
+                                                actual_repo_permissions.users
+                                            {
+                                                users_array.push(single_user_permission);
+                                            }
                                         }
                                     }
                                 }
@@ -338,12 +352,15 @@ impl Actions for OrganizationYaml {
                 ////println!("{:?}",configured_repository);
                 match configured_repository {
                     Some(configured_repo) => {
-                        let mut diff_users: Vec<UserElement> = actual_repo_permissions.users;
+                        let mut diff_users: Vec<UserElement> =
+                            actual_repo_permissions.users.unwrap_or_default();
                         //println!("Actual USERS permissions {:?}", diff_users);
 
                         if let Some(user) = configured_repo.permissions.as_ref() {
-                            for el_permission in &user.users {
-                                diff_users.retain(|x| x != el_permission);
+                            if let Some(users) = &user.users {
+                                for el_permission in users {
+                                    diff_users.retain(|x| x != el_permission);
+                                }
                             }
                             //println!("Wanted USERS permissions {:?}", &user.users);
                         } else {
@@ -368,12 +385,15 @@ impl Actions for OrganizationYaml {
 
                         //println!();
 
-                        let mut diff_robots: Vec<UserElement> = actual_repo_permissions.robots;
+                        let mut diff_robots: Vec<UserElement> =
+                            actual_repo_permissions.robots.unwrap_or_default();
                         debug!("Actual ROBOTS permissions {:?}", diff_robots);
 
                         if let Some(user) = configured_repo.permissions.as_ref() {
-                            for el_permission in &user.robots {
-                                diff_robots.retain(|x| x != el_permission);
+                            if let Some(robots) = &user.robots {
+                                for el_permission in robots {
+                                    diff_robots.retain(|x| x != el_permission);
+                                }
                             }
                             //println!("Wanted ROBOT permissions {:?}", &user.robots);
                         } else {
@@ -605,29 +625,81 @@ impl Actions for OrganizationYaml {
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<QuayResponse, Box<dyn Error>> {
-        let endpoint = format!(
-            "https://{}/api/v1/organization/{}/team/{}",
-            &self.quay_endpoint, &self.quay_organization, team.name
-        );
-        let mut body = HashMap::new();
+        if let Some(team_name) = &team.name {
+            let endpoint = format!(
+                "https://{}/api/v1/organization/{}/team/{}",
+                &self.quay_endpoint, &self.quay_organization, team_name
+            );
+            let mut body = HashMap::new();
 
-        body.insert("description", &team.description);
-        body.insert("role", &team.role);
-        //body.insert("unstructured_metadata", empty);
+            body.insert("description", &team.description);
+            body.insert("role", &team.role);
+            //body.insert("unstructured_metadata", empty);
 
-        let description = format!(
-            "Creating team '{}' for organization '{}'",
-            team.name, &self.quay_organization
-        );
-        let response = &self
-            .send_request(
-                endpoint,
-                &body,
-                &description,
-                Method::PUT,
-                quay_fn_arguments,
-            )
-            .await?;
+            let description = format!(
+                "Creating team '{}' for organization '{}'",
+                &team_name, &self.quay_organization
+            );
+            let response = &self
+                .send_request(
+                    endpoint,
+                    &body,
+                    &description,
+                    Method::PUT,
+                    quay_fn_arguments,
+                )
+                .await?;
+
+            return Ok(response.clone());
+        }
+
+        let response = QuayResponse {
+            response: Value::Null,
+            status_code: StatusCode::NOT_ACCEPTABLE,
+            description: "Team name non present".to_string(),
+        };
+
+        Ok(response.clone())
+    }
+
+    async fn create_team_sync(
+        &self,
+        team: &Team,
+        quay_fn_arguments: QuayFnArguments,
+    ) -> Result<QuayResponse, Box<dyn Error>> {
+        if let Some(team_name) = &team.name {
+            let endpoint = format!(
+                "https://{}/api/v1/organization/{}/team/{}/syncing",
+                &self.quay_endpoint, &self.quay_organization, team_name
+            );
+            let mut body = HashMap::new();
+
+            if let Some(groupdn) = &team.groupdn {
+                body.insert("group_dn", &groupdn);
+
+                let description = format!(
+                    "Creating team '{}' for organization '{}'",
+                    &team_name, &self.quay_organization
+                );
+                let response = &self
+                    .send_request(
+                        endpoint,
+                        &body,
+                        &description,
+                        Method::POST,
+                        quay_fn_arguments,
+                    )
+                    .await?;
+
+                return Ok(response.clone());
+            } // groupdn
+        }
+
+        let response = QuayResponse {
+            response: Value::Null,
+            status_code: StatusCode::NOT_ACCEPTABLE,
+            description: "Team name non present".to_string(),
+        };
 
         Ok(response.clone())
     }
@@ -899,16 +971,16 @@ pub struct OrganizationYaml {
     pub quay_organization: String,
 
     #[serde(rename = "quay_organization_role_email")]
-    quay_organization_role_email: String,
+    quay_organization_role_email: Option<String>,
 
     #[serde(rename = "repositories")]
     pub repositories: Vec<Repository>,
 
     #[serde(rename = "robots")]
-    pub robots: Vec<RobotDetails>,
+    pub robots: Option<Vec<RobotDetails>>,
 
     #[serde(rename = "teams")]
-    pub teams: Vec<Team>,
+    pub teams: Option<Vec<Team>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
@@ -931,7 +1003,6 @@ pub struct Repository {
     #[serde(rename = "permissions")]
     pub permissions: Option<Permissions>,
 }
-
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -1029,10 +1100,10 @@ pub struct MirrorParams {
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct Permissions {
     #[serde(rename = "robots")]
-    pub robots: Vec<UserElement>,
+    pub robots: Option<Vec<UserElement>>,
 
     #[serde(rename = "users")]
-    pub users: Vec<UserElement>,
+    pub users: Option<Vec<UserElement>>,
 
     #[serde(rename = "teams")]
     pub teams: Option<Vec<UserElement>>,
@@ -1041,8 +1112,8 @@ pub struct Permissions {
 impl Permissions {
     pub fn new() -> Permissions {
         Permissions {
-            robots: Vec::new(),
-            users: Vec::new(),
+            robots: Some(Vec::new()),
+            users: Some(Vec::new()),
             teams: Some(Vec::new()),
         }
     }
@@ -1075,16 +1146,19 @@ pub struct RobotDetails {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Team {
     #[serde(rename = "name")]
-    pub name: String,
+    pub name: Option<String>,
 
     #[serde(rename = "description")]
-    description: String,
+    description: Option<String>,
 
     #[serde(rename = "members")]
     pub members: Members,
 
     #[serde(rename = "role")]
-    role: String,
+    role: Option<String>,
+
+    #[serde(rename = "group_dn")]
+    groupdn: Option<String>,
 }
 
 /// Repository's member structs.
@@ -1093,10 +1167,10 @@ pub struct Team {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Members {
     #[serde(rename = "users")]
-    pub users: Vec<String>,
+    pub users: Option<Vec<String>>,
 
     #[serde(rename = "robots")]
-    pub robots: Vec<String>,
+    pub robots: Option<Vec<String>>,
 }
 
 /// Helper struct to pass arguments to functions.
