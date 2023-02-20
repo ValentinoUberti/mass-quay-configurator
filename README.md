@@ -35,6 +35,7 @@ Each organizations yaml config can be easily replicated to another Quay instance
 - [Getting a Quay super user oauth token](#quaytoken)
 - [Usage](#usage)
 - [Troubleshooting](#troubleshoot)
+- [Compatibility Matrix](#matrix)
 - [License](#license)
 - [Credits](#credits)
 
@@ -418,6 +419,26 @@ In case of a missing field in an organizations yaml:
 In case of a missing Quay endpoint token:
 
 ![check](docs/images/check2.png)
+
+
+<div id='matrix'/>
+
+## Compatibility Matrix
+
+| MQC   | Quay   | Result             |
+|-------|--------|--------------------|
+| 0.0.5 | 3.8.2  | :heavy_check_mark: |
+| 0.0.5 | 3.8.1  | :heavy_check_mark: |
+| 0.0.5 | 3.8.0  | :heavy_check_mark: |
+| 0.0.5 | 3.7.10 | :heavy_check_mark: |
+| 0.0.5 | 3.7.9  | :heavy_check_mark: |
+| 0.0.5 | 3.7.8  | :heavy_check_mark: |
+| 0.0.5 | 3.7.7  | :heavy_check_mark: |
+| 0.0.5 | 3.7.6  | :heavy_check_mark: |
+| 0.0.5 | 3.7.5  | :heavy_check_mark: |
+| 0.0.5 | 3.7.4  | :heavy_check_mark: |
+| 0.0.5 | 3.7.2  | :heavy_check_mark: |
+| 0.0.5 | 3.6.x  | :x:                |
 
 
 ## License
