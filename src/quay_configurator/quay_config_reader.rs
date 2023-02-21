@@ -31,6 +31,7 @@ pub struct QuayXmlConfig {
     quay_login_configs: QuayLoginConfigs,
     timeout: u64,
     tls_verify: bool,
+    retries: u32,
 }
 
 impl QuayXmlConfig {
@@ -42,6 +43,7 @@ impl QuayXmlConfig {
         timeout: u64,
         ignore_login_config: bool,
         tls_verify: bool,
+        retries: u32,
     ) -> Result<Self, Box<dyn Error>> {
         let governor = Arc::new(governor::RateLimiter::direct(governor::Quota::per_second(
             NonZeroU32::new(req_per_seconds).unwrap(),
@@ -60,6 +62,7 @@ impl QuayXmlConfig {
                         timeout,
                         tls_verify,
                         quay_login_configs,
+                        retries,
                     });
                 }
                 Err(e) => return Err(Box::new(e)),
@@ -79,6 +82,7 @@ impl QuayXmlConfig {
                 timeout,
                 tls_verify,
                 quay_login_configs,
+                retries,
             });
         }
     }
@@ -489,6 +493,8 @@ impl QuayXmlConfig {
                 timeout: self.timeout,
                 tls_verify: self.tls_verify,
                 mirror_login: None,
+                retries: self.retries,
+                
             };
 
             handles_delete_organization.push(org.delete_organization(quay_fn_arguments));
@@ -568,6 +574,7 @@ impl QuayXmlConfig {
                 timeout: self.timeout,
                 tls_verify: self.tls_verify,
                 mirror_login: Some(tmp_mirror_login),
+                retries: self.retries,
             };
 
             handles_all_organizations.push(org.create_organization(quay_fn_arguments.clone()));

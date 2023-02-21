@@ -55,6 +55,11 @@ struct Cli {
     #[arg(long)]
     /// Verify Quay tls certificate. Default to true
     tls_verify: Option<bool>,
+
+    #[arg(long,short)]
+    /// Connection retries. Default to 3
+    retries: Option<u32>,
+
 }
 
 #[derive(Subcommand)]
@@ -140,6 +145,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
         None => dir = "yaml-files".to_string(),
     }
 
+
+    let retries: u32;
+    match cli.retries {
+        Some(d) => retries=d,
+        None => retries=3,
+    }
+
+
     let log_level: log::Level;
     match cli.log_level {
         Some(ll) => log_level = ll,
@@ -200,6 +213,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         timeout,
         false,
         tls_verify,
+        retries,
     ) {
         Ok(c) => {
             config = c;
@@ -225,6 +239,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 timeout,
                 true,
                 tls_verify,
+                retries,
             ) {
                 Ok(c) => {
                     config = c;
