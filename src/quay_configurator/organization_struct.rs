@@ -4,12 +4,16 @@ use governor::clock::{QuantaClock, QuantaInstant};
 use governor::middleware::NoOpMiddleware;
 use governor::state::{InMemoryState, NotKeyed};
 use governor::{self, RateLimiter};
-use log::{debug};
+use log::debug;
 use std::sync::Arc;
 use std::{collections::HashMap, error::Error, time::Duration};
 use substring::Substring;
 
 use reqwest::{Method, StatusCode};
+use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+use reqwest_tracing::TracingMiddleware;
+
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -122,9 +126,17 @@ pub trait Actions {
     where
         T: Serialize + std::marker::Sync,
     {
-        let client = reqwest::Client::builder()
+        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(quay_fn_arguments.retries);
+        let clientbuilder = reqwest::Client::builder()
             .danger_accept_invalid_certs(quay_fn_arguments.tls_verify)
             .build()?;
+
+        let client = ClientBuilder::new(clientbuilder)
+            // Trace HTTP requests. See the tracing crate to make use of these traces.
+            .with(TracingMiddleware::default())
+            // Retry failed requests.
+            .with(RetryTransientMiddleware::new_with_policy(retry_policy))
+            .build();
 
         let api = client
             .request(method, endpoint)
@@ -138,7 +150,7 @@ pub trait Actions {
             .json(body);
 
         ////println!("{:?}", api);
-        let retry_jitter = governor::Jitter::new(Duration::ZERO, Duration::from_millis(1));
+        let retry_jitter = governor::Jitter::new(Duration::ZERO, Duration::from_millis(100));
         quay_fn_arguments
             .governor
             .until_ready_with_jitter(retry_jitter)
@@ -1092,7 +1104,7 @@ pub struct MirrorParams {
     #[serde(rename = "sync_interval")]
     sync_interval: i64,
 
-    #[serde(rename = "is_enabled", default="default_true")]
+    #[serde(rename = "is_enabled", default = "default_true")]
     is_enabled: bool,
 
     #[serde(rename = "https_proxy")]
@@ -1206,6 +1218,8 @@ pub struct QuayFnArguments {
     pub tls_verify: bool,
 
     pub mirror_login: Option<Vec<MirrorLogin>>,
+
+    pub retries: u32,
 }
 
 //
