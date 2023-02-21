@@ -947,9 +947,32 @@ impl Actions for OrganizationYaml {
                             &body,
                             &description,
                             Method::PUT,
-                            quay_fn_arguments,
+                            quay_fn_arguments.clone(),
                         )
                         .await?;
+
+                    // Sync now
+
+                    let endpoint_state = format!(
+                        "https://{}/api/v1/repository/{}/{}/mirror/sync-now",
+                        &self.quay_endpoint, &self.quay_organization, repo.name
+                    );
+    
+                    let body_state: HashMap<&str, &str> = HashMap::new();
+    
+                       
+                    let _response = &self
+                        .send_request(
+                            endpoint_state,
+                            &body_state,
+                            &description,
+                            Method::POST,
+                            quay_fn_arguments.clone(),
+                        )
+                        .await?;
+                    // End sync now
+
+
 
                     return Ok(response_put.clone());
                 }
