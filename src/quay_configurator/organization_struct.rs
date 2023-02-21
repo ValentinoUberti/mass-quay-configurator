@@ -1065,6 +1065,10 @@ pub struct RootRule {
     pub rule_value: Vec<String>,
 }
 
+fn default_true() -> bool {
+    true
+}
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Clone)]
 pub struct MirrorParams {
     #[serde(rename = "src_registry")]
@@ -1088,7 +1092,7 @@ pub struct MirrorParams {
     #[serde(rename = "sync_interval")]
     sync_interval: i64,
 
-    #[serde(rename = "is_enabled")]
+    #[serde(rename = "is_enabled", default="default_true")]
     is_enabled: bool,
 
     #[serde(rename = "https_proxy")]
