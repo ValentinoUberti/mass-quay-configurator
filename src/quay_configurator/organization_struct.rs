@@ -10,7 +10,7 @@ use std::{collections::HashMap, error::Error, time::Duration};
 use substring::Substring;
 
 use reqwest::{Method, StatusCode};
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use reqwest_middleware::{ClientBuilder};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use reqwest_tracing::TracingMiddleware;
 

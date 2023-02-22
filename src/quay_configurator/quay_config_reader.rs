@@ -16,6 +16,7 @@ use std::error::Error;
 use std::io::{self, Write};
 use std::num::NonZeroU32;
 use std::path::Path;
+use std::process;
 use std::{fs::File, sync::Arc};
 use tokio::fs::{self, read_dir};
 use tokio::time::Instant;
@@ -233,7 +234,7 @@ impl QuayXmlConfig {
                             .get_token_from_quay_endopoint(q.to_string())
                         {
                         } else {
-                            let err_str = format!("No token found for {} Quay endpoint. Please run 'mqc login. Ignoring this Quay endpoint.",q.to_string());
+                            let err_str = format!("No token found for {} Quay endpoint. Please run `mqc login`. Ignoring this Quay endpoint.",q.to_string());
                             error!("{}", err_str);
                             continue;
                         }
@@ -480,7 +481,7 @@ impl QuayXmlConfig {
             {
                 token = t
             } else {
-                let err_str = format!("No token found for {} Quay endpoint. Please run 'mqc login. Ignoring this Quay organization.",org.get_quay_endpoint());
+                let err_str = format!("No token found for {} Quay endpoint. Please run `mqc login`. Ignoring this Quay organization.",org.get_quay_endpoint());
                 error!("{}", err_str);
                 continue;
             }
@@ -548,7 +549,7 @@ impl QuayXmlConfig {
             {
                 token = t
             } else {
-                let err_str = format!("No token found for {} Quay endpoint. Please run 'mqc login. Ignoring this Quay organization.",org.get_quay_endpoint());
+                let err_str = format!("No token found for {} Quay endpoint. Please run `mqc login`. Ignoring this Quay organization.",org.get_quay_endpoint());
                 error!("{}", err_str);
                 continue;
             }
@@ -671,7 +672,7 @@ impl QuayXmlConfig {
             }
         }
 
-        let total_requestes = handles_all_organizations.len()
+        let total_requests = handles_all_organizations.len()
             + handles_all_mirror_sync_configurations.len()
             + handles_all_robots.len()
             + handles_all_teams.len()
@@ -682,7 +683,13 @@ impl QuayXmlConfig {
             + handles_all_extra_team_permissions.len()
             + (handles_all_mirror_configurations.len() * 3);
 
-        info!("TOTAL REQUESTS : {}", total_requestes);
+        info!("TOTAL REQUESTS : {}", total_requests);
+
+
+        if total_requests==0 {
+           error!("Can not continue");
+           process::exit(1); 
+        }
 
         // Create organization
         info!(
@@ -868,7 +875,14 @@ impl QuayLoginConfigs {
     pub fn get_token_from_quay_endopoint(&self, endpoint: String) -> Option<String> {
         for configured_endpoint in self.get_quay_login_configs() {
             if configured_endpoint.quay_endpoint == endpoint {
-                return Some(configured_endpoint.quay_token);
+                if configured_endpoint.quay_token.len() > 1 {
+                   
+                    return Some(configured_endpoint.quay_token);    
+                } else {
+                   
+                    return None;
+                }
+                
             }
         }
 
