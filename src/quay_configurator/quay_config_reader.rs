@@ -153,6 +153,8 @@ impl QuayXmlConfig {
         }
     }
     pub async fn check_config(&self, halt_on_error: bool) -> Result<(), std::io::Error> {
+
+        
         let mut files = read_dir(self.directory.to_owned()).await?;
         while let Some(f) = files.next_entry().await? {
             match f
@@ -301,6 +303,9 @@ impl QuayXmlConfig {
                 }
             } // match
         } // while
+
+        
+
         Ok(())
     }
 
