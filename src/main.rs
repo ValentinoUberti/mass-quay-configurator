@@ -11,7 +11,7 @@ use env_logger::{fmt::Color, Env, Target};
 use std::{error::Error, io};
 use tokio::time::Instant;
 //use console_subscriber;
-use crate::quay_configurator::quay_config_reader::QuayXmlConfig;
+use crate::quay_configurator::quay_config_reader::QuayYamlConfig;
 use env_logger;
 use log::{error, info, Level};
 use std::io::Write;
@@ -203,9 +203,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     
     // main config
-    let mut config: QuayXmlConfig;
+    let mut config: QuayYamlConfig;
 
-    match QuayXmlConfig::new(
+    match QuayYamlConfig::new(
         &dir,
         req_per_seconds,
         log_level,
@@ -231,7 +231,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
 
-            match QuayXmlConfig::new(
+            match QuayYamlConfig::new(
                 &dir,
                 req_per_seconds,
                 log_level,

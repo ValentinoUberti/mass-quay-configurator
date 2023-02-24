@@ -23,7 +23,7 @@ use tokio::time::Instant;
 
 // Main Config struct
 #[derive(Debug)]
-pub struct QuayXmlConfig {
+pub struct QuayYamlConfig {
     organization: Vec<OrganizationYaml>,
     directory: String,
     governor: Arc<RateLimiter<NotKeyed, InMemoryState, QuantaClock, NoOpMiddleware<QuantaInstant>>>,
@@ -35,7 +35,7 @@ pub struct QuayXmlConfig {
     retries: u32,
 }
 
-impl QuayXmlConfig {
+impl QuayYamlConfig {
     pub fn new(
         directory: &String,
         req_per_seconds: u32,
