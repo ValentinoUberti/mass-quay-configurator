@@ -427,18 +427,18 @@ In case of a missing Quay endpoint token:
 
 | MQC   | Quay   | Result             |
 |-------|--------|--------------------|
-| 0.0.7 | 3.8.2  | :heavy_check_mark: |
-| 0.0.7 | 3.8.1  | :heavy_check_mark: |
-| 0.0.7 | 3.8.0  | :heavy_check_mark: |
-| 0.0.7 | 3.7.10 | :heavy_check_mark: |
-| 0.0.7 | 3.7.9  | :heavy_check_mark: |
-| 0.0.7 | 3.7.8  | :heavy_check_mark: |
-| 0.0.7 | 3.7.7  | :heavy_check_mark: |
-| 0.0.7 | 3.7.6  | :heavy_check_mark: |
-| 0.0.7 | 3.7.5  | :heavy_check_mark: |
-| 0.0.7 | 3.7.4  | :heavy_check_mark: |
-| 0.0.7 | 3.7.2  | :heavy_check_mark: |
-| 0.0.7 | 3.6.x  | :x:                |
+| 0.0.8 | 3.8.2  | :heavy_check_mark: |
+| 0.0.8 | 3.8.1  | :heavy_check_mark: |
+| 0.0.8 | 3.8.0  | :heavy_check_mark: |
+| 0.0.8 | 3.7.10 | :heavy_check_mark: |
+| 0.0.8 | 3.7.9  | :heavy_check_mark: |
+| 0.0.8 | 3.7.8  | :heavy_check_mark: |
+| 0.0.8 | 3.7.7  | :heavy_check_mark: |
+| 0.0.8 | 3.7.6  | :heavy_check_mark: |
+| 0.0.8 | 3.7.5  | :heavy_check_mark: |
+| 0.0.8 | 3.7.4  | :heavy_check_mark: |
+| 0.0.8 | 3.7.2  | :heavy_check_mark: |
+| 0.0.8 | 3.6.x  | :x:                |
 
 
 ## License
