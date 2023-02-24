@@ -449,3 +449,7 @@ Please see the [LICENSE](LICENSE) file.
 
 Mqc is based on an idea of a colleague of mine, [Andrea Miglietta](https://github.com/amigliet/), who has created the concept of the organization data structure and has implemented all the automations in Ansible. 
 
+
+## Using with Dockerfile
+
+podman run -v ./yaml-files-test:/yaml-files:Z -v .mqc:/.mqc:Z mqc:v0.0.8 create
