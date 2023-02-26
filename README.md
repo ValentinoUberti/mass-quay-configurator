@@ -35,7 +35,7 @@ Each organizations yaml config can be easily replicated to another Quay instance
 - [Getting a Quay super user oauth token](#quaytoken)
 - [Usage](#usage)
 - [Troubleshooting](#troubleshoot)
-- [Podman]
+- [Podman](#podman)
 - [Compatibility Matrix](#matrix)
 - [License](#license)
 - [Credits](#credits)
