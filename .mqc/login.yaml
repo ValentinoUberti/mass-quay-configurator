@@ -1,7 +1,7 @@
 ---
 quay_endpoint_login:
   - quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
-    quay_token: C09F0bwFlobsnoSsaxBVGi5A0Fi8eNqLxCWr1IDZ
+    quay_token: 
   - quay_endpoint: example-registry-quay-quay2.apps.ocphub.lab.seeweb
     quay_token:
 mirror_repository:
