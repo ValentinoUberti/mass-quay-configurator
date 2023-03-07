@@ -4,13 +4,14 @@ use governor::clock::{QuantaClock, QuantaInstant};
 use governor::middleware::NoOpMiddleware;
 use governor::state::{InMemoryState, NotKeyed};
 use governor::{self, RateLimiter};
-use log::debug;
+use log::{debug, info};
 use std::sync::Arc;
 use std::{collections::HashMap, error::Error, time::Duration};
 use substring::Substring;
+use tokio::time::Instant;
 
 use reqwest::{Method, StatusCode};
-use reqwest_middleware::{ClientBuilder};
+use reqwest_middleware::ClientBuilder;
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
 use reqwest_tracing::TracingMiddleware;
 
@@ -126,7 +127,8 @@ pub trait Actions {
     where
         T: Serialize + std::marker::Sync,
     {
-        let retry_policy = ExponentialBackoff::builder().build_with_max_retries(quay_fn_arguments.retries);
+        let retry_policy =
+            ExponentialBackoff::builder().build_with_max_retries(quay_fn_arguments.retries);
         let clientbuilder = reqwest::Client::builder()
             .danger_accept_invalid_certs(quay_fn_arguments.tls_verify)
             .build()?;
@@ -150,12 +152,22 @@ pub trait Actions {
             .json(body);
 
         ////println!("{:?}", api);
-        let retry_jitter = governor::Jitter::new(Duration::ZERO, Duration::from_millis(100));
+        let retry_jitter = governor::Jitter::new(
+            Duration::ZERO,
+            Duration::from_millis(quay_fn_arguments.jitter),
+        );
+
+        let mut now = Instant::now();
+
         quay_fn_arguments
             .governor
             .until_ready_with_jitter(retry_jitter)
             .await;
 
+        if quay_fn_arguments.log_verbosity >= 5 {
+            info!("Waited {:?} ms due to Jitter.", now.elapsed().as_millis());
+            now = Instant::now();
+        }
         //println("{:?}",governor.)
         let response_status = api.send().await?;
         let status_code = response_status.status();
@@ -173,6 +185,7 @@ pub trait Actions {
         if quay_fn_arguments.log_level == log::Level::Debug {
             debug!("{:?}", quay_response.clone());
         }
+
         Ok(quay_response)
     }
 }
@@ -957,10 +970,9 @@ impl Actions for OrganizationYaml {
                         "https://{}/api/v1/repository/{}/{}/mirror/sync-now",
                         &self.quay_endpoint, &self.quay_organization, repo.name
                     );
-    
+
                     let body_state: HashMap<&str, &str> = HashMap::new();
-    
-                       
+
                     let _response = &self
                         .send_request(
                             endpoint_state,
@@ -971,8 +983,6 @@ impl Actions for OrganizationYaml {
                         )
                         .await?;
                     // End sync now
-
-
 
                     return Ok(response_put.clone());
                 }
@@ -1243,6 +1253,8 @@ pub struct QuayFnArguments {
     pub mirror_login: Option<Vec<MirrorLogin>>,
 
     pub retries: u32,
+
+    pub jitter: u64,
 }
 
 //

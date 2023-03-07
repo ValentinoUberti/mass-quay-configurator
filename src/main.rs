@@ -60,6 +60,10 @@ struct Cli {
     /// Connection retries. Default to 3
     retries: Option<u32>,
 
+    #[arg(long,short)]
+    /// Jitter (ms). Default to 100 ms
+    jitter: Option<u64>,
+
 }
 
 #[derive(Subcommand)]
@@ -146,6 +150,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     }
 
 
+
+    let jitter: u64;
+    match cli.jitter {
+        Some(d) => jitter=d,
+        None => jitter=100,
+    }
+
     let retries: u32;
     match cli.retries {
         Some(d) => retries=d,
@@ -214,6 +225,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         false,
         tls_verify,
         retries,
+        jitter
     ) {
         Ok(c) => {
             config = c;
@@ -240,6 +252,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
                 true,
                 tls_verify,
                 retries,
+                jitter
             ) {
                 Ok(c) => {
                     config = c;
