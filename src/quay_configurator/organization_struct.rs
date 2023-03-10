@@ -116,6 +116,13 @@ pub trait Actions {
         team: &Repository,
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<QuayResponse, Box<dyn Error>>;
+
+    async fn team_already_synched(
+        &self,
+        team: &Team,
+        quay_fn_arguments: QuayFnArguments,
+    ) -> Result<bool, Box<dyn Error>>;
+
     async fn send_request<T>(
         &self,
         endpoint: String,
@@ -687,6 +694,60 @@ impl Actions for OrganizationYaml {
         Ok(response.clone())
     }
 
+    async fn team_already_synched(
+        &self,
+        team: &Team,
+        quay_fn_arguments: QuayFnArguments,
+    ) -> Result<bool, Box<dyn Error>> {
+        if let Some(team_name) = &team.name {
+            if let Some(_groupdn) = &team.groupdn {
+                let endpoint = format!(
+                    "https://{}/api/v1/organization/{}/team/{}/members",
+                    &self.quay_endpoint, &self.quay_organization, team_name
+                );
+
+                let body: HashMap<&str, &str> = HashMap::new();
+
+                let description = format!(
+                    "Checking if team '{}' synching for organization '{}' is already configured",
+                    &team_name, &self.quay_organization
+                );
+
+                println!("{:?}", description);
+
+                let response = &self
+                    .send_request(
+                        endpoint.clone(),
+                        &body,
+                        &description,
+                        Method::GET,
+                        quay_fn_arguments.clone(),
+                    )
+                    .await?;
+
+                println!("{:?}", response.response);
+
+                let endpoint = format!(
+                    "https://{}/api/v1/organization/{}/team/{}/syncing",
+                    &self.quay_endpoint, &self.quay_organization, team_name
+                );
+                let response = &self
+                    .send_request(
+                        endpoint,
+                        &body,
+                        &description,
+                        Method::DELETE,
+                        quay_fn_arguments,
+                    )
+                    .await?;
+
+                println!("{:?}", response.response);
+            } // Some groupdb
+        } // Some(team_name)
+
+        Ok(false)
+    }
+
     async fn create_team_sync(
         &self,
         team: &Team,
@@ -701,12 +762,30 @@ impl Actions for OrganizationYaml {
             let mut body = HashMap::new();
 
             if let Some(groupdn) = &team.groupdn {
+                let description = format!(
+                    "Resetting team '{}' synching for organization '{}'",
+                    &team_name, &self.quay_organization
+                );
+
+                let _response = &self
+                    .send_request(
+                        endpoint.clone(),
+                        &body,
+                        &description,
+                        Method::DELETE,
+                        quay_fn_arguments.clone(),
+                    )
+                    .await?;
+
                 body.insert("group_dn", &groupdn);
 
                 let description = format!(
-                    "Creating team '{}' for organization '{}'",
+                    "Creating team '{}' ldap synch for organization '{}'",
                     &team_name, &self.quay_organization
                 );
+
+               
+
                 let response = &self
                     .send_request(
                         endpoint,
@@ -717,6 +796,7 @@ impl Actions for OrganizationYaml {
                     )
                     .await?;
 
+               
                 /*
                 if !response.status_code.is_success() {
                     if response.status_code != StatusCode::INTERNAL_SERVER_ERROR {
@@ -1211,7 +1291,7 @@ pub struct Team {
     description: Option<String>,
 
     #[serde(rename = "members")]
-    pub members: Members,
+    pub members: Option<Members>,
 
     #[serde(rename = "role")]
     role: Option<String>,

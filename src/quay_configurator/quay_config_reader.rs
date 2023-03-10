@@ -33,7 +33,7 @@ pub struct QuayYamlConfig {
     timeout: u64,
     tls_verify: bool,
     retries: u32,
-    jitter: u64
+    jitter: u64,
 }
 
 impl QuayYamlConfig {
@@ -46,7 +46,7 @@ impl QuayYamlConfig {
         ignore_login_config: bool,
         tls_verify: bool,
         retries: u32,
-        jitter: u64
+        jitter: u64,
     ) -> Result<Self, Box<dyn Error>> {
         let governor = Arc::new(governor::RateLimiter::direct(governor::Quota::per_second(
             NonZeroU32::new(req_per_seconds).unwrap(),
@@ -66,7 +66,7 @@ impl QuayYamlConfig {
                         tls_verify,
                         quay_login_configs,
                         retries,
-                        jitter
+                        jitter,
                     });
                 }
                 Err(e) => return Err(Box::new(e)),
@@ -87,7 +87,7 @@ impl QuayYamlConfig {
                 tls_verify,
                 quay_login_configs,
                 retries,
-                jitter
+                jitter,
             });
         }
     }
@@ -157,8 +157,6 @@ impl QuayYamlConfig {
         }
     }
     pub async fn check_config(&self, halt_on_error: bool) -> Result<(), std::io::Error> {
-
-        
         let mut files = read_dir(self.directory.to_owned()).await?;
         while let Some(f) = files.next_entry().await? {
             match f
@@ -307,8 +305,6 @@ impl QuayYamlConfig {
                 }
             } // match
         } // while
-
-        
 
         Ok(())
     }
@@ -530,7 +526,7 @@ impl QuayYamlConfig {
                 tls_verify: self.tls_verify,
                 mirror_login: None,
                 retries: self.retries,
-                jitter: self.jitter
+                jitter: self.jitter,
             };
 
             handles_delete_organization.push(org.delete_organization(quay_fn_arguments));
@@ -611,7 +607,7 @@ impl QuayYamlConfig {
                 tls_verify: self.tls_verify,
                 mirror_login: Some(tmp_mirror_login),
                 retries: self.retries,
-                jitter: self.jitter
+                jitter: self.jitter,
             };
 
             handles_all_organizations.push(org.create_organization(quay_fn_arguments.clone()));
@@ -627,24 +623,31 @@ impl QuayYamlConfig {
                     handles_all_teams.push(org.create_team(team, quay_fn_arguments.clone()));
 
                     if let Some(team_name) = &team.name {
-                        if let Some(users_member) = &team.members.users {
-                            for member in users_member {
-                                handles_all_team_members.push(org.add_user_to_team(
-                                    &team_name,
-                                    &member,
-                                    quay_fn_arguments.clone(),
-                                ))
+                        if let Some(members) = &team.members {
+                            match &team.groupdn {
+                                None => {
+                                    if let Some(users_member) = &members.users {
+                                        for member in users_member {
+                                            handles_all_team_members.push(org.add_user_to_team(
+                                                &team_name,
+                                                &member,
+                                                quay_fn_arguments.clone(),
+                                            ))
+                                        }
+                                    }
+                                }
+                                Some(_) => {}
                             }
-                        }
 
-                        if let Some(robots_member) = &team.members.robots {
-                            for member in robots_member {
-                                handles_all_team_members.push(org.add_robot_to_team(
-                                    &team_name,
-                                    &member,
-                                    quay_fn_arguments.clone(),
-                                ))
-                            }
+                            if let Some(robots_member) = &members.robots {
+                                for member in robots_member {
+                                    handles_all_team_members.push(org.add_robot_to_team(
+                                        &team_name,
+                                        &member,
+                                        quay_fn_arguments.clone(),
+                                    ))
+                                }
+                            } // if some team.members
                         }
 
                         if let Some(_groupdn) = &team.groupdn {
@@ -792,6 +795,11 @@ impl QuayYamlConfig {
         );
         let now = Instant::now();
         let results = join_all(handles_all_mirror_sync_configurations);
+
+        // for h in handles_all_mirror_sync_configurations {
+        //     let res = h.await;
+        //     self.print_result("Team ldap sync ->".to_string(), res);
+        // }
 
         for result in results.await {
             self.print_result("Team ldap sync ->".to_string(), result);
