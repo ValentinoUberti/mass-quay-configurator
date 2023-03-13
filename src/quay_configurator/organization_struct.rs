@@ -32,96 +32,96 @@ pub trait Actions {
     async fn create_organization(
         &self,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn grant_user_permission_to_repository(
         &self,
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn delete_user_permission_from_repository(
         &self,
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
 
     async fn delete_team_permission_from_repository(
         &self,
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn get_user_permission_from_repository(
         &self,
         repo: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn get_team_permission_from_repository(
         &self,
         repo: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn grant_robot_permission_to_repository(
         &self,
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn grant_team_permission_to_repository(
         &self,
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn delete_organization(
         &self,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn create_robot(
         &self,
         robot: &RobotDetails,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn create_team(
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn create_team_sync(
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn add_user_to_team(
         &self,
         team: &String,
         user: &String,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
 
     async fn add_robot_to_team(
         &self,
         team: &String,
         user: &String,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn create_repository(
         &self,
         team: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn create_repository_mirror(
         &self,
         team: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>;
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
 
     async fn team_already_synched(
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<bool, Box<dyn Error>>;
+    ) -> Result<bool, Box<dyn Error + Send + Sync>>;
 
     async fn send_request<T>(
         &self,
@@ -130,7 +130,7 @@ pub trait Actions {
         description: &String,
         method: reqwest::Method,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>>
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>
     where
         T: Serialize + std::marker::Sync,
     {
@@ -164,7 +164,7 @@ pub trait Actions {
             Duration::from_millis(quay_fn_arguments.jitter),
         );
 
-        let mut now = Instant::now();
+        let mut _now = Instant::now();
 
         quay_fn_arguments
             .governor
@@ -172,8 +172,8 @@ pub trait Actions {
             .await;
 
         if quay_fn_arguments.log_verbosity >= 5 {
-            info!("Waited {:?} ms due to Jitter.", now.elapsed().as_millis());
-            now = Instant::now();
+            info!("Waited {:?} ms due to Jitter.", _now.elapsed().as_millis());
+            _now = Instant::now();
         }
         //println("{:?}",governor.)
         let response_status = api.send().await?;
@@ -202,7 +202,7 @@ impl Actions for OrganizationYaml {
     async fn create_organization(
         &self,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let empty = "".to_string();
         let endpoint = format!("https://{}/api/v1/organization/", &self.quay_endpoint);
         let mut body = HashMap::new();
@@ -233,7 +233,7 @@ impl Actions for OrganizationYaml {
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/permissions/user/{}",
             &self.quay_endpoint, &self.quay_organization, repo, user.name
@@ -258,7 +258,7 @@ impl Actions for OrganizationYaml {
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/permissions/user/{}",
             &self.quay_endpoint, &self.quay_organization, repo, user.name
@@ -283,7 +283,7 @@ impl Actions for OrganizationYaml {
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/permissions/team/{}",
             &self.quay_endpoint, &self.quay_organization, repo, user.name
@@ -308,7 +308,7 @@ impl Actions for OrganizationYaml {
         &self,
         repo: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/permissions/user/",
             &self.quay_endpoint, &self.quay_organization, repo.name,
@@ -462,7 +462,7 @@ impl Actions for OrganizationYaml {
         &self,
         repo: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/permissions/team/",
             &self.quay_endpoint, &self.quay_organization, repo.name,
@@ -552,7 +552,7 @@ impl Actions for OrganizationYaml {
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/permissions/user/{}",
             &self.quay_endpoint,
@@ -580,7 +580,7 @@ impl Actions for OrganizationYaml {
         repo: &String,
         user: &UserElement,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/permissions/team/{}",
             &self.quay_endpoint, &self.quay_organization, repo, user.name
@@ -603,7 +603,7 @@ impl Actions for OrganizationYaml {
     async fn delete_organization(
         &self,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/organization/{}",
             &self.quay_endpoint, &self.quay_organization
@@ -626,7 +626,7 @@ impl Actions for OrganizationYaml {
         &self,
         robot: &RobotDetails,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/organization/{}/robots/{}",
             &self.quay_endpoint, &self.quay_organization, robot.name
@@ -656,7 +656,7 @@ impl Actions for OrganizationYaml {
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         if let Some(team_name) = &team.name {
             let endpoint = format!(
                 "https://{}/api/v1/organization/{}/team/{}",
@@ -698,7 +698,7 @@ impl Actions for OrganizationYaml {
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<bool, Box<dyn Error>> {
+    ) -> Result<bool, Box<dyn Error + Send + Sync>> {
         if let Some(team_name) = &team.name {
             if let Some(_groupdn) = &team.groupdn {
                 let endpoint = format!(
@@ -752,7 +752,7 @@ impl Actions for OrganizationYaml {
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         if let Some(team_name) = &team.name {
             let endpoint = format!(
                 "https://{}/api/v1/organization/{}/team/{}/syncing",
@@ -824,7 +824,7 @@ impl Actions for OrganizationYaml {
         team: &String,
         user: &String,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/organization/{}/team/{}/members/{}",
             &self.quay_endpoint, &self.quay_organization, team, user
@@ -849,7 +849,7 @@ impl Actions for OrganizationYaml {
         team: &String,
         robot: &String,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/organization/{}/team/{}/members/{}",
             &self.quay_endpoint,
@@ -875,7 +875,7 @@ impl Actions for OrganizationYaml {
         &self,
         repo: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!("https://{}/api/v1/repository", &self.quay_endpoint,);
         let mut body: HashMap<&str, &String> = HashMap::new();
 
@@ -915,7 +915,7 @@ impl Actions for OrganizationYaml {
         &self,
         repo: &Repository,
         quay_fn_arguments: QuayFnArguments,
-    ) -> Result<QuayResponse, Box<dyn Error>> {
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
         let endpoint = format!(
             "https://{}/api/v1/repository/{}/{}/mirror",
             &self.quay_endpoint, &self.quay_organization, repo.name

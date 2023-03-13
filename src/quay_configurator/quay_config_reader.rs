@@ -47,7 +47,7 @@ impl QuayYamlConfig {
         tls_verify: bool,
         retries: u32,
         jitter: u64,
-    ) -> Result<Self, Box<dyn Error>> {
+    ) -> Result<Self, Box<dyn Error + Send + Sync>> {
         let governor = Arc::new(governor::RateLimiter::direct(governor::Quota::per_second(
             NonZeroU32::new(req_per_seconds).unwrap(),
         )));
@@ -309,7 +309,7 @@ impl QuayYamlConfig {
         Ok(())
     }
 
-    pub async fn create_login(self) -> Result<(), Box<dyn Error>> {
+    pub async fn create_login(self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut quay_endpoints: Vec<String> = Vec::new();
         let mut quay_mirror_login = QuayMirrorLogin::default();
 
@@ -464,7 +464,7 @@ impl QuayYamlConfig {
         self.governor.clone()
     }
 
-    fn print_result(&self, _description: String, result: Result<QuayResponse, Box<dyn Error>>) {
+    fn print_result(&self, _description: String, result: Result<QuayResponse, Box<dyn Error + Send + Sync>>) {
         match result {
             Ok(r) => {
                 let mut corrected_description = String::new();
@@ -497,7 +497,7 @@ impl QuayYamlConfig {
         }
     }
 
-    pub async fn delete_all(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn delete_all(&self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut handles_delete_organization = Vec::new();
         let orgs = self.get_organizations();
 
@@ -551,7 +551,7 @@ impl QuayYamlConfig {
         Ok(())
     }
 
-    pub async fn create_all(&self) -> Result<(), Box<dyn Error>> {
+    pub async fn create_all(&self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut handles_all_organizations = Vec::new();
         // let mut handles_delete_organization = Vec::new();
         let mut handles_all_robots = Vec::new();
