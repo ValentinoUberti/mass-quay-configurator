@@ -464,7 +464,11 @@ impl QuayYamlConfig {
         self.governor.clone()
     }
 
-    fn print_result(&self, _description: String, result: Result<QuayResponse, Box<dyn Error + Send + Sync>>) {
+    fn print_result(
+        &self,
+        _description: String,
+        result: Result<QuayResponse, Box<dyn Error + Send + Sync>>,
+    ) {
         match result {
             Ok(r) => {
                 let mut corrected_description = String::new();
@@ -558,6 +562,7 @@ impl QuayYamlConfig {
         let mut handles_all_teams = Vec::new();
         let mut handles_all_repositories = Vec::new();
         let mut handles_all_repositories_permissions = Vec::new();
+        let mut handles_all_repositories_notifications = Vec::new();
         let mut handles_all_team_members = Vec::new();
         let mut handles_all_extra_user_permissions = Vec::new();
         let mut handles_all_extra_team_permissions = Vec::new();
@@ -670,6 +675,10 @@ impl QuayYamlConfig {
                 handles_all_mirror_configurations
                     .push(org.create_repository_mirror(&repository, quay_fn_arguments.clone()));
 
+                handles_all_repositories_notifications.push(
+                    org.create_repository_notification(&repository, quay_fn_arguments.clone()),
+                );
+
                 if let Some(permissions) = &repository.permissions {
                     if let Some(robots) = &permissions.robots {
                         for robot in robots {
@@ -719,6 +728,7 @@ impl QuayYamlConfig {
             + handles_all_team_members.len()
             + handles_all_extra_user_permissions.len()
             + handles_all_extra_team_permissions.len()
+            + handles_all_repositories_notifications.len()
             + (handles_all_mirror_configurations.len() * 3);
 
         info!("TOTAL REQUESTS : {}", total_requests);
@@ -875,6 +885,24 @@ impl QuayYamlConfig {
 
         info!(
             "Repositories permissions created in  {} seconds.",
+            now.elapsed().as_secs_f32()
+        );
+
+        // Create repositories notifications
+        info!(
+            "Creating {} repositories notifications...",
+            handles_all_repositories_notifications.len()
+        );
+
+        let now = Instant::now();
+        let results = join_all(handles_all_repositories_notifications);
+
+        for result in results.await {
+            self.print_result("Repository notifications ->".to_string(), result);
+        }
+
+        info!(
+            "Repositories notifications created in  {} seconds.",
             now.elapsed().as_secs_f32()
         );
 

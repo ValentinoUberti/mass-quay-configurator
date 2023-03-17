@@ -4,7 +4,7 @@ use governor::clock::{QuantaClock, QuantaInstant};
 use governor::middleware::NoOpMiddleware;
 use governor::state::{InMemoryState, NotKeyed};
 use governor::{self, RateLimiter};
-use log::{debug, info};
+use log::{debug, info, warn};
 use std::sync::Arc;
 use std::{collections::HashMap, error::Error, time::Duration};
 use substring::Substring;
@@ -112,6 +112,12 @@ pub trait Actions {
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
     async fn create_repository_mirror(
+        &self,
+        team: &Repository,
+        quay_fn_arguments: QuayFnArguments,
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
+
+    async fn create_repository_notification(
         &self,
         team: &Repository,
         quay_fn_arguments: QuayFnArguments,
@@ -784,8 +790,6 @@ impl Actions for OrganizationYaml {
                     &team_name, &self.quay_organization
                 );
 
-               
-
                 let response = &self
                     .send_request(
                         endpoint,
@@ -796,7 +800,6 @@ impl Actions for OrganizationYaml {
                     )
                     .await?;
 
-               
                 /*
                 if !response.status_code.is_success() {
                     if response.status_code != StatusCode::INTERNAL_SERVER_ERROR {
@@ -1053,6 +1056,8 @@ impl Actions for OrganizationYaml {
 
                     let body_state: HashMap<&str, &str> = HashMap::new();
 
+
+
                     let _response = &self
                         .send_request(
                             endpoint_state,
@@ -1081,6 +1086,108 @@ impl Actions for OrganizationYaml {
         }
 
         //body.insert("unstructured_metadata", empty);
+    }
+
+    async fn create_repository_notification(
+        &self,
+        repo: &Repository,
+        quay_fn_arguments: QuayFnArguments,
+    ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
+        let endpoint_get_notifications = format!(
+            "https://{}/api/v1/repository/{}/{}/notification/",
+            &self.quay_endpoint, &self.quay_organization, repo.name
+        );
+
+        /*
+        Delete all current notifications (if any)
+         */
+
+        let body_state: HashMap<&str, &str> = HashMap::new();
+
+        let description = format!(
+            "Getting notifications for repository '{}' for organization '{}'",
+            repo.name, &self.quay_organization
+        );
+
+        let response = &self
+            .send_request(
+                endpoint_get_notifications,
+                &body_state,
+                &description,
+                Method::GET,
+                quay_fn_arguments.clone(),
+            )
+            .await?;
+
+        
+
+        let deserialized_notifications: MapCurrentNotifications =
+            match serde_json::from_value(response.response.clone()) {
+                Ok(notifications) => notifications,
+                Err(e) => {
+                    warn!("{:#?}", e);
+                    MapCurrentNotifications::default()
+                }
+            };
+
+        let description = format!(
+            "deleting notifications for repository '{}' for organization '{}'",
+            repo.name, &self.quay_organization
+        );
+
+        for n in deserialized_notifications.notifications {
+           
+            let endpoint_delete_notifications = format!(
+                "https://{}/api/v1/repository/{}/{}/notification/{}",
+                &self.quay_endpoint, &self.quay_organization, repo.name, n.uuid
+            );
+
+            let _response = &self
+                .send_request(
+                    endpoint_delete_notifications,
+                    &body_state,
+                    &description,
+                    Method::DELETE,
+                    quay_fn_arguments.clone(),
+                )
+                .await?;
+        }
+
+        if let Some(notifications) = &repo.notification {
+            for notification in notifications {
+                if notification.method == "webhook" {
+                    if notification.event == "repo_mirror_sync_failed" {
+                        let endpoint = format!(
+                            "https://{}/api/v1/repository/{}/{}/notification/",
+                            &self.quay_endpoint, &self.quay_organization, repo.name
+                        );
+                        // Start here
+
+                        //{"event":"repo_mirror_sync_failed","method":"webhook","config":{"url":"http://aaaa"},"eventConfig":{}}
+                        
+                       // println!("{:#?}",serde_json::to_string(notification));
+                       
+                        let _response = &self
+                            .send_request(
+                                endpoint,
+                                &notification,
+                                &description,
+                                Method::POST,
+                                quay_fn_arguments.clone(),
+                            )
+                            .await?;
+
+                       
+                    } else {
+                        warn!("Only 'repo_mirror_sync_failed' event supported for notifications");
+                    }
+                } else {
+                    warn!("Only 'webhook' method supported for notifications");
+                }
+            }
+        }
+
+        Ok(response.clone())
     }
 }
 
@@ -1137,6 +1244,9 @@ pub struct Repository {
 
     #[serde(rename = "permissions")]
     pub permissions: Option<Permissions>,
+
+    #[serde(rename = "notification")]
+    pub notification: Option<Vec<Notification>>,
 }
 
 #[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -1343,4 +1453,60 @@ pub struct QuayFnArgumentsMirrorLogin {
     pub repo: String,
     pub user: String,
     pub password: String,
+}
+
+/*
+
+/api/v1/repository/exampleorg/alpine/notification/
+
+{"event":"repo_mirror_sync_failed","method":"webhook","config":{"url":"http://aaaa"},"eventConfig":{}}
+
+
+
+Received json from hook
+Received: {"repository": "exampleorg/alpine", "namespace": "exampleorg", "name": "alpine", "docker_url": "example-registry-quay-quay1.apps.ocphub.lab.seeweb/exampleorg/alpine", "homepage": "https://example-registry-quay-quay1.apps.ocphub.lab.seeweb/repository/exampleorg/alpine", "message": "TEST NOTIFICATION"}'
+
+*/
+
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Notification {
+    pub event: String,
+    pub method: String,
+    pub config: NotificationConfig,
+    pub event_config: Option<EventConfig>,
+    pub title: Option<String>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NotificationConfig {
+    pub url: String,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EventConfig {}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+
+pub struct MapCurrentNotifications {
+    pub notifications: Vec<CurrentNotifications>,
+    pub additional: Option<bool>,
+}
+
+#[derive(Default, Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CurrentNotifications {
+    pub uuid: String,
+    pub title: String,
+    pub event: String,
+    pub method: String,
+    pub config: NotificationConfig,
+    #[serde(rename = "event_config")]
+    pub event_config: EventConfig,
+    #[serde(rename = "number_of_failures")]
+    pub number_of_failures: i64,
 }
