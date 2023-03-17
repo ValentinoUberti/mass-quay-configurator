@@ -1,0 +1,23 @@
+quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
+replicate_to: 
+  - anotherquay.io
+  - anotherdifferentquay.io
+quay_organization: basic-example-replicate-to
+repositories:
+- mirror: true
+  mirror_params:
+    ext_registry_verify_tls: true
+    robot_username: redhat_robot_account
+    src_image: valeube/mqc
+    src_image_tags: 
+      - "*"
+    src_registry: quay.io
+    sync_interval: 86400
+  name: mqc
+  permissions:
+    robots:
+    - name: redhat_robot_account
+      role: admin
+robots:
+- desc: ''
+  name: redhat_robot_account

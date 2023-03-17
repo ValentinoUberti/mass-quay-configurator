@@ -11,6 +11,8 @@
   - Users permissions
   - Robots permissions
   - Teams permissions
+  - Notifications on failed mirror 
+    - Only Post webhook supported
   - Mirror 
     - image tags
     - proxy
@@ -150,7 +152,15 @@ repositories:
         #https_proxy:
         #http_proxy:
         #no_proxy:
-    
+
+        #Optional for notification in case on mirror failure
+        #notification: 
+        #  - event: repo_mirror_sync_failed #required
+        #    method: webhook #only webhook supported
+        #    config: # required
+        #      url: https://simple-python-post-webserver-git-webserver.apps.ocphub.lab.seeweb #required for webhook
+        #    title: "my title" # optional
+           
     #Optional robot and user permissions
     permissions:
         robots:
@@ -221,6 +231,7 @@ All the configured Quay organizations, are mass-created using this schema:
   - add user permissions to all repositories for all organizations (if any)
   - add robots permissions to all repositories for all organizations (if any)
   - add mirror configurations to all repositories for all organizations (if any)
+  - add mirror failure notification to all repositories for all organizations (if any)
 
 If a configuration drift is detected, it is fixed using the organization's yaml files as a unique source of truth.
 
@@ -294,37 +305,22 @@ add the '--dir' flag if the organizations files are in a different directory tha
 This command detects all the required Quay endpoint tokens and all the repositories mirror required passwords:
 
 
-This example uses six different organizations:
+This example uses five different organizations:
 
-- exampleorg1
-- exampleorg2
-- exampleorg3
-- exampleorg4
-- exampleorg5
-- exampleorg6
+- basic-example-mirror
+- basic-example-replicate-to
+- basic-example-with-team-sync
+- empty-repositories
+- mirror-with-notification
 
-All those organizations use the same Quay endpoint 'example-registry-quay-<b>quay1</b>.apps.ocphub.lab.seeweb'
 
-The organization 'exampleorg' will be replicated to another Quay endpoint 'example-registry-quay-<b>quay2</b>.apps.ocphub.lab.seeweb' because there is the 'replicate_to' key in the 'example-organization1.yaml' file.
+All those organizations use the same Quay endpoint 'example-registry-quay-<b>quay1</b>.apps.ocphub.lab.seeweb' except for the basic-example-replicate-to organization that show how to replicate the org to different Quay instances.
 
-The 'alpine' repository for the exampleorg1 and exampleorg2 is configured to mirror images from another image registry. Just for an example purpose, two different username are configured:
+Please see all the examples in the 'example-yaml-files' directory
 
-- exampleorg1
-  - 'alpine' repository, mirror of 'quay.io/libpod/alpine' (only mirror tags 'latest' and 'v1')
-  - required username 'valeidm'  
-- exampleorg2
-  - 'alpine' repository, mirror of 'quay.io/libpod/alpine' (only mirror tags 'latest' and 'v1')
-  - required username 'giorgia'  
+
 
 The 'login' subcommand detects and asks the user to insert all the required Quay endpoints token and repositories mirror password.
-
-Using the files under 'docs/example-yaml-files' the 'login' sub-command will ask for:
-- Two Quay endpoints oauth2 token
-  - One for example-registry-quay-<b>quay1</b>.apps.ocphub.lab.seeweb
-  - One for example-registry-quay-<b>quay2</b>.apps.ocphub.lab.seeweb
-- Two repository mirror password
-  - One for user 'valeidm' required for repository 'alpine' configured for 'exampleorg1' Quay organization
-  - One for user 'giorgia' required for repository 'alpine' configured for 'exampleorg2' Quay organization
 
 All the input token and passwords are hidden from stdout.
 
@@ -427,11 +423,11 @@ In case of a missing Quay endpoint token:
 
 ### Build
 
-podman build -t mqc:v0.0.11 .
+podman build -t mqc:v0.0.12.
 
 ### Run
 
-podman run -v ./yaml-files-test:/yaml-files:Z -v .mqc:/.mqc:Z mqc:v0.0.11 create
+podman run -v ./yaml-files-test:/yaml-files:Z -v .mqc:/.mqc:Z mqc:v0.0.12create
 
 Mqc images: quay.io/valeube/mqc
 
@@ -442,19 +438,19 @@ Mqc images: quay.io/valeube/mqc
 
 | MQC   | Quay   | Result             |
 |-------|--------|--------------------|
-| 0.0.11 | 3.8.3  | :heavy_check_mark: |
-| 0.0.11 | 3.8.2  | :heavy_check_mark: |
-| 0.0.11 | 3.8.1  | :heavy_check_mark: |
-| 0.0.11 | 3.8.0  | :heavy_check_mark: |
-| 0.0.11 | 3.7.10 | :heavy_check_mark: |
-| 0.0.11 | 3.7.9  | :heavy_check_mark: |
-| 0.0.11 | 3.7.8  | :heavy_check_mark: |
-| 0.0.11 | 3.7.7  | :heavy_check_mark: |
-| 0.0.11 | 3.7.6  | :heavy_check_mark: |
-| 0.0.11 | 3.7.5  | :heavy_check_mark: |
-| 0.0.11 | 3.7.4  | :heavy_check_mark: |
-| 0.0.11 | 3.7.2  | :heavy_check_mark: |
-| 0.0.11 | 3.6.x  | :x:                |
+| 0.0.12| 3.8.3  | :heavy_check_mark: |
+| 0.0.12| 3.8.2  | :heavy_check_mark: |
+| 0.0.12| 3.8.1  | :heavy_check_mark: |
+| 0.0.12| 3.8.0  | :heavy_check_mark: |
+| 0.0.12| 3.7.10 | :heavy_check_mark: |
+| 0.0.12| 3.7.9  | :heavy_check_mark: |
+| 0.0.12| 3.7.8  | :heavy_check_mark: |
+| 0.0.12| 3.7.7  | :heavy_check_mark: |
+| 0.0.12| 3.7.6  | :heavy_check_mark: |
+| 0.0.12| 3.7.5  | :heavy_check_mark: |
+| 0.0.12| 3.7.4  | :heavy_check_mark: |
+| 0.0.12| 3.7.2  | :heavy_check_mark: |
+| 0.0.12| 3.6.x  | :x:                |
 
 
 ## License

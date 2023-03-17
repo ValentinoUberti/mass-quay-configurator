@@ -1,0 +1,117 @@
+quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
+quay_organization: basic-example-with-team-sync
+quay_organization_role_name: basic-example-with-team-sync
+repositories:
+- mirror: false
+  name: sample-java-image
+  permissions:
+    robots:
+    - name: ocp_build
+      role: write
+    teams:
+    - name: cbmdevelopers
+      role: write
+- mirror: false
+  name: git
+  permissions:
+    robots:
+    - name: ocp_build
+      role: write
+    teams:
+    - name: cbmdevelopers
+      role: write
+    users:
+    - name: myuser
+      role: admin
+- mirror: false
+  name: mvn
+  permissions:
+    robots:
+    - name: ocp_build
+      role: write
+    teams:
+    - name: cbmdevelopers
+      role: write
+    users:
+    - name: myuser
+      role: admin
+- mirror: false
+  name: hugo
+  permissions:
+    robots:
+    - name: ocp_build
+      role: write
+    teams:
+    - name: cbmdevelopers
+      role: write
+    users:
+    - name: myuser
+      role: admin
+- mirror: false
+  name: github-runner-ocp
+  permissions:
+    robots:
+    - name: ocp_build
+      role: write
+    teams:
+    - name: cbmdevelopers
+      role: write
+    users:
+    - name: myuser
+      role: admin
+- mirror: false
+  name: sample-dotnet-image
+  permissions:
+    robots:
+    - name: ocp_build
+      role: write
+    teams:
+    - name: owners
+      role: write
+    - name: cbmdevelopers
+      role: write
+- mirror: false
+  name: github-runner-oc
+  permissions:
+    robots:
+    - name: ocp_build
+      role: write
+    teams:
+    - name: owners
+      role: write
+    - name: cbmdevelopers
+      role: write
+- mirror: false
+  name: sample-container-app
+  permissions:
+    teams:
+    - name: owners
+      role: write
+    - name: cbmdevelopers
+      role: admin
+    users:
+    - name: myuser
+      role: admin
+- mirror: false
+  name: sample-js-image
+  permissions:
+    teams:
+    - name: owners
+      role: write
+    - name: cbmdevelopers
+      role: write
+    users:
+    - name: myuser
+      role: admin
+robots:
+- desc: Used by build pipelines
+  name: ocp_build
+teams:
+- description: ''
+  group_dn: cn=ocp,cn=groups,cn=accounts
+  name: owners
+  role: admin
+- description: ''
+  group_dn: cn=ocp,cn=groups,cn=accounts
+  name: cbmdevelopers
+  role: creator

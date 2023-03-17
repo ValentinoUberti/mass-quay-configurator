@@ -1,0 +1,16 @@
+quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
+quay_organization: empty-repositories
+quay_organization_role_name: empty-repositories
+repositories: []
+robots:
+- desc: 'ArgoCD Robot Account'
+  name: argocd
+teams:
+- description: ''
+  group_dn: cn=ocp,cn=groups,cn=accounts
+  name: quayadmins
+  role: admin
+- description: ''
+  group_dn: cn=ocp,cn=groups,cn=accounts
+  name: cbmdevelopers
+  role: creator

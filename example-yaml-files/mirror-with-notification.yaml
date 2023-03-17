@@ -1,0 +1,85 @@
+quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
+quay_organization: mirror-with-notification
+quay_organization_role_name: mirror-with-notification
+repositories:
+- mirror: true
+  mirror_params:
+    ext_registry_username: null
+    ext_registry_verify_tls: true
+    robot_username: ghcr_sync_account
+    src_image: external-secrets/external-secrets-helm-operator
+    src_image_tags: 
+      - "v0.5.9"
+    src_registry: ghcr.io
+    sync_interval: 86400
+    
+  name: external-secrets-helm-operator
+  permissions:
+    robots:
+    - name: ghcr_sync_account
+      role: write
+    - name: puller
+      role: read
+    users:
+    - name: myuser
+      role: admin
+
+  notification: 
+    - event: repo_mirror_sync_failed #required
+      method: webhook #only webhook supported
+      config: # required
+        url: https://simple-python-post-webserver-git-webserver.apps.ocphub.lab.seeweb #required for webhook
+      title: "my title" # optional
+      
+- mirror: true
+  mirror_params:
+    ext_registry_username: null
+    ext_registry_verify_tls: true
+    robot_username: puller
+    src_image: external-secrets/external-secrets
+    src_image_tags: 
+      - "main"
+      - "v0.[5-6]*"
+      - "helm-chart-0.[5-6]*"
+    src_registry: ghcr.io
+    sync_interval: 86400
+   
+  name: external-secrets
+  permissions:
+    robots:
+    - name: ghcr_sync_account
+      role: write
+    - name: puller
+      role: write
+    users:
+    - name: myuser
+      role: admin
+- mirror: false
+  name: tcpdump
+  permissions:
+    robots:
+    - name: tcpdump
+      role: read
+    users:
+    - name: myuser
+      role: admin
+robots:
+- desc: ''
+  name: test_puller
+- desc: ''
+  name: puller
+- desc: ''
+  name: ghcr_sync_account
+- desc: ''
+  name: tcpdump
+teams:
+- description: ''
+  members:
+    users:
+    - myuser
+  name: owners
+  role: admin
+- description: ''
+  group_dn: cn=ocp,cn=groups,cn=accounts
+  name: quayadmins
+  role: admin
