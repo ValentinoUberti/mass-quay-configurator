@@ -1,4 +1,4 @@
-FROM rust:1.66 AS builder
+FROM rust:1.68.1 AS builder
 COPY . .
 RUN cargo build --release
 

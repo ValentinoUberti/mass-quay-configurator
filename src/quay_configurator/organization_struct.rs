@@ -1510,3 +1510,4 @@ pub struct CurrentNotifications {
     #[serde(rename = "number_of_failures")]
     pub number_of_failures: i64,
 }
+
