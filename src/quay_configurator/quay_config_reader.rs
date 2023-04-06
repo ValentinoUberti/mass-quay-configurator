@@ -173,6 +173,9 @@ impl QuayYamlConfig {
                         serde_yaml::from_reader(f2);
                     match result {
                         Ok(org) => {
+
+                               
+
                             info!("Config syntax of {:?} verified.  ", f.file_name());
 
                             let mut quay_endpoints: Vec<String> = Vec::new();

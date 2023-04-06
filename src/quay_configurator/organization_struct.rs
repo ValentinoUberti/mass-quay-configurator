@@ -17,6 +17,7 @@ use reqwest_tracing::TracingMiddleware;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use serde_email::Email;
 
 use super::quay_config_reader::MirrorLogin;
 
@@ -209,13 +210,15 @@ impl Actions for OrganizationYaml {
         &self,
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>> {
-        let empty = "".to_string();
+        //let empty = "".to_string();
         let endpoint = format!("https://{}/api/v1/organization/", &self.quay_endpoint);
         let mut body = HashMap::new();
+
+        let email=self.quay_organization_email.clone().to_string();
         body.insert("name", &self.quay_organization);
         body.insert(
             "email",
-            &self.quay_organization_role_email.as_ref().unwrap_or(&empty),
+            &email,
         );
 
         let response = &self
@@ -1212,8 +1215,8 @@ pub struct OrganizationYaml {
     #[serde(rename = "quay_organization")]
     pub quay_organization: String,
 
-    #[serde(rename = "quay_organization_role_email")]
-    quay_organization_role_email: Option<String>,
+    #[serde(rename = "quay_organization_email")]
+    quay_organization_email: Email,
 
     #[serde(rename = "repositories")]
     pub repositories: Vec<Repository>,

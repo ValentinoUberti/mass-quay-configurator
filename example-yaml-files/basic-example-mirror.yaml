@@ -1,5 +1,6 @@
 quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
 quay_organization: basic-example-mirror
+quay_organization_email: vuberti@redhat.com
 repositories:
 - mirror: true
   mirror_params:

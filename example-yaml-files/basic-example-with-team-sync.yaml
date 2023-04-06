@@ -1,6 +1,6 @@
 quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
 quay_organization: basic-example-with-team-sync
-quay_organization_role_name: basic-example-with-team-sync
+quay_organization_email: vuberti@redhat.com
 repositories:
 - mirror: false
   name: sample-java-image
