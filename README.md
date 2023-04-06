@@ -119,8 +119,8 @@ replicate_to:
 # Organization name
 quay_organization: exampleorg6
 
-#Organization email
-quay_organization_role_email: ""
+# Organization email
+quay_organization_email: ""
 
 # List of repositories
 repositories:
