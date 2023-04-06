@@ -423,7 +423,7 @@ In case of a missing Quay endpoint token:
 
 ### Build
 
-podman build -t mqc:v0.0.12.
+podman build -t mqc:v0.0.13 .
 
 ### Run
 
