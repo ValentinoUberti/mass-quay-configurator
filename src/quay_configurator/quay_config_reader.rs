@@ -560,7 +560,7 @@ impl QuayYamlConfig {
 
     pub async fn create_all(&self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut handles_all_organizations = Vec::new();
-        // let mut handles_delete_organization = Vec::new();
+        
         let mut handles_all_robots = Vec::new();
         let mut handles_all_teams = Vec::new();
         let mut handles_all_repositories = Vec::new();
