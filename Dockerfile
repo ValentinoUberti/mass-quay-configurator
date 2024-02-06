@@ -1,6 +1,6 @@
 FROM rust:1.68.1 AS builder
 COPY . .
-RUN cargo build --release --offline
+RUN cargo build --release
 
 FROM registry.access.redhat.com/ubi8-micro
 COPY --from=builder ./target/release/mqc ./target/release/mqc
