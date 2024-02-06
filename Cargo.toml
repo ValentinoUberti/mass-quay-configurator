@@ -9,7 +9,7 @@ description = "Mass Quay Configurator"
 readme = "README.md"
 
 [dependencies]
-crates-index-diff = "22.0.0"
+crates-index-diff = "20.0.0"
 clap = { version = "4.1.4", features = ["derive"] }
 tokio = { version = "1.15", features = ["macros", "rt-multi-thread","fs","signal","sync"] }
 serde_yaml = "0.8"
