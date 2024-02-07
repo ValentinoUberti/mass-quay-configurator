@@ -1,5 +1,5 @@
 # Use an Ubuntu base image
-FROM ubuntu:latest AS builder
+FROM ubuntu:22.04 AS builder
 
 # Install necessary dependencies
 RUN apt-get update && \
