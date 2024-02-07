@@ -1,4 +1,16 @@
-FROM rust:1.68.1 AS builder
+# Use an Ubuntu base image
+FROM ubuntu:latest AS builder
+
+# Install necessary dependencies
+RUN apt-get update && \
+    apt-get install -y \
+    curl \
+    build-essential \
+    libssl-dev
+
+# Install Rust
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
 COPY . .
 RUN cargo build --release
 
