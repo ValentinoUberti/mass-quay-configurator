@@ -110,7 +110,7 @@ The rule is simple: one file for each Quay organizations:
 ```
 ---
 # Quay endpoint fqdn
-quay_endpoint: "example-registry-quay-quay1.apps.ocphub.lab.seeweb"
+quay_endpoint: "example-registry-quay-quay.apps.ocp.seeweb.local"
 
 # Optional. Replicate this configuration to different Quay instances
 replicate_to:
@@ -423,11 +423,11 @@ In case of a missing Quay endpoint token:
 
 ### Build
 
-podman build -t mqc:v0.0.13 .
+podman build -t mqc:v0.0.14 .
 
 ### Run
 
-podman run -v ./yaml-files-test:/yaml-files:Z -v .mqc:/.mqc:Z mqc:v0.0.13 create
+podman run -v ./yaml-files-test:/yaml-files:Z -v .mqc:/.mqc:Z mqc:v0.0.14 create
 
 Mqc images: quay.io/valeube/mqc
 
@@ -438,6 +438,7 @@ Mqc images: quay.io/valeube/mqc
 
 | MQC   | Quay   | Result             |
 |-------|--------|--------------------|
+| 0.0.14| 3.10.4 | :heavy_check_mark: |
 | 0.0.13| 3.8.7  | :heavy_check_mark: |
 | 0.0.13| 3.8.6  | :heavy_check_mark: |
 | 0.0.13| 3.8.5  | :heavy_check_mark: |

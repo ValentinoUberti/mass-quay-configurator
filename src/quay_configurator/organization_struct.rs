@@ -1467,7 +1467,7 @@ pub struct QuayFnArgumentsMirrorLogin {
 
 
 Received json from hook
-Received: {"repository": "exampleorg/alpine", "namespace": "exampleorg", "name": "alpine", "docker_url": "example-registry-quay-quay1.apps.ocphub.lab.seeweb/exampleorg/alpine", "homepage": "https://example-registry-quay-quay1.apps.ocphub.lab.seeweb/repository/exampleorg/alpine", "message": "TEST NOTIFICATION"}'
+Received: {"repository": "exampleorg/alpine", "namespace": "exampleorg", "name": "alpine", "docker_url": "example-registry-quay-quay.apps.ocp.seeweb.local/exampleorg/alpine", "homepage": "https://example-registry-quay-quay.apps.ocp.seeweb.local/repository/exampleorg/alpine", "message": "TEST NOTIFICATION"}'
 
 */
 

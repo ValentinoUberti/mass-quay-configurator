@@ -1,4 +1,4 @@
-quay_endpoint: example-registry-quay-quay1.apps.ocphub.lab.seeweb
+quay_endpoint: example-registry-quay-quay.apps.ocp.seeweb.local
 quay_organization: empty-repositories
 quay_organization_email: vuberti@redhat.com
 repositories: []

@@ -1,6 +1,6 @@
 ---
 # Generic variables
-quay_endpoint: "example-registry-quay-quay1.apps.ocphub.lab.seeweb"
+quay_endpoint: "example-registry-quay-quay.apps.ocp.seeweb.local"
 
 replicate_to:
   - example-registry-quay-quay2.apps.ocphub.lab.seeweb

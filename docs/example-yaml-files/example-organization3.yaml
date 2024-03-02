@@ -1,6 +1,6 @@
 ---
 # Generic variables
-quay_endpoint: "example-registry-quay-quay1.apps.ocphub.lab.seeweb"
+quay_endpoint: "example-registry-quay-quay.apps.ocp.seeweb.local"
 
 # Organization
 quay_organization: exampleorg3

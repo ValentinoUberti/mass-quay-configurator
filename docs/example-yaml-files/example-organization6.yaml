@@ -1,6 +1,6 @@
 ---
 # Quay endpoint fqdn
-quay_endpoint: "example-registry-quay-quay1.apps.ocphub.lab.seeweb"
+quay_endpoint: "example-registry-quay-quay.apps.ocp.seeweb.local"
 
 # Organization name
 quay_organization: exampleorg6
