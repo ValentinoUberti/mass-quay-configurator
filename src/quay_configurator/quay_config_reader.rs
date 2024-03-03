@@ -94,6 +94,9 @@ impl QuayYamlConfig {
     pub async fn load_config(&mut self) -> Result<(), std::io::Error> {
         let mut files = read_dir(self.directory.to_owned()).await?;
 
+               
+        let mut orgs_email:Vec<String> = Vec::new();
+
         while let Some(f) = files.next_entry().await? {
             info!("Loading config from  {:?} ", f.file_name());
 
@@ -111,6 +114,9 @@ impl QuayYamlConfig {
                         Ok(scrape_config) => {
                             //error!("Opening file {:?}: Ignoring...",f.file_name());
 
+                           
+                          
+
                             self.organization.push(scrape_config);
                         }
                         Err(e) => {
@@ -123,6 +129,28 @@ impl QuayYamlConfig {
                 }
             }
         }
+
+
+        for org in self.organization.clone() {
+
+            if orgs_email.contains(&org.quay_organization_email.clone().to_string()) {
+                warn!("The email for organization {} is already used by another organization", &org.quay_organization);
+                warn!("Skipping organization {:?}",&org.quay_organization);
+                //self.organization.retain(|value| *value.quay_organization == org.quay_organization);
+                if let Some(pos) = self.organization.iter().position(|x| *x == org) {
+                    self.organization.remove(pos);
+                    continue;
+                }
+                println!("{:?}",self.organization);
+                
+
+                } else {
+                    orgs_email.push(org.quay_organization_email.clone().to_string());
+                }
+
+        }
+        
+
 
         // Adds optional endpoints (replicated_to -> endpoints)
         // Warn if the replicated endpoints already exists as a main Quay endpoint.
@@ -148,6 +176,7 @@ impl QuayYamlConfig {
             }
         }
 
+
         Ok(())
     }
 
@@ -156,8 +185,15 @@ impl QuayYamlConfig {
             info!("{}", message);
         }
     }
-    pub async fn check_config(&self, halt_on_error: bool) -> Result<(), std::io::Error> {
+    pub async fn check_config(&mut self, halt_on_error: bool) -> Result<(), std::io::Error> {
         let mut files = read_dir(self.directory.to_owned()).await?;
+
+        
+        // Checking  for duplicate organization email
+        
+        let mut orgs_email:Vec<String> = Vec::new();
+
+
         while let Some(f) = files.next_entry().await? {
             match f
                 .path()
@@ -174,9 +210,25 @@ impl QuayYamlConfig {
                     match result {
                         Ok(org) => {
 
-                               
+                            info!("Organization email {:?} ",org.quay_organization_email);
+                            info!("Checking if organization email has duplicates...");
+
+                            if orgs_email.contains(&org.quay_organization_email.clone().to_string()) {
+                            warn!("The email for organization {} is already used by another organization", &org.quay_organization);
+                            warn!("Skipping organization {:?}",&org.quay_organization);
+                            self.organization.retain(|value| *value.quay_organization == org.quay_organization);
+                            println!("{:?}",self.organization);
+                            continue;
+
+                            } else {
+                                orgs_email.push(org.quay_organization_email.clone().to_string());
+                            }
+
+                            info!("{:?}",orgs_email);
 
                             info!("Config syntax of {:?} verified.  ", f.file_name());
+
+                            
 
                             let mut quay_endpoints: Vec<String> = Vec::new();
                             let mut quay_mirror_login = QuayMirrorLogin::default();

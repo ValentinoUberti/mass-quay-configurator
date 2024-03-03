@@ -1,6 +1,6 @@
 quay_endpoint: example-registry-quay-quay.apps.ocp.seeweb.local
 quay_organization: empty-repositories
-quay_organization_email: vuberti@redhat.com
+quay_organization_email: vuberti3@redhat.com
 repositories: []
 robots:
 - desc: 'ArgoCD Robot Account'

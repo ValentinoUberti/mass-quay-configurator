@@ -3,7 +3,7 @@ replicate_to:
   - anotherquay.io
   - anotherdifferentquay.io
 quay_organization: basic-example-replicate-to
-quay_organization_email: vuberti@redhat.com
+quay_organization_email: vuberti1@redhat.com
 repositories:
 - mirror: true
   mirror_params:

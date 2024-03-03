@@ -1216,7 +1216,7 @@ pub struct OrganizationYaml {
     pub quay_organization: String,
 
     #[serde(rename = "quay_organization_email")]
-    quay_organization_email: Email,
+    pub quay_organization_email: Email,
 
     #[serde(rename = "repositories")]
     pub repositories: Vec<Repository>,

@@ -1,6 +1,6 @@
 quay_endpoint: example-registry-quay-quay.apps.ocp.seeweb.local
 quay_organization: mirror-with-notification
-quay_organization_email: vuberti@redhat.com
+quay_organization_email: vuberti4@redhat.com
 repositories:
 - mirror: true
   mirror_params:
