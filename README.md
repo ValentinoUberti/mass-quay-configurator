@@ -427,7 +427,7 @@ podman build -t mqc:v0.0.14 .
 
 ### Run
 
-podman run -v ./yaml-files-test:/yaml-files:Z -v .mqc:/.mqc:Z mqc:v0.0.14 create
+
 
 Mqc images: quay.io/valeube/mqc
 
@@ -438,6 +438,7 @@ Mqc images: quay.io/valeube/mqc
 
 | MQC   | Quay   | Result             |
 |-------|--------|--------------------|
+| 0.0.15| 3.10.4 | :heavy_check_mark: 
 | 0.0.14| 3.10.4 | :heavy_check_mark: |
 | 0.0.13| 3.8.7  | :heavy_check_mark: |
 | 0.0.13| 3.8.6  | :heavy_check_mark: |
