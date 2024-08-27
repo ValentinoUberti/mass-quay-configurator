@@ -94,8 +94,7 @@ impl QuayYamlConfig {
     pub async fn load_config(&mut self) -> Result<(), std::io::Error> {
         let mut files = read_dir(self.directory.to_owned()).await?;
 
-               
-        let mut orgs_email:Vec<String> = Vec::new();
+        let mut orgs_email: Vec<String> = Vec::new();
 
         while let Some(f) = files.next_entry().await? {
             info!("Loading config from  {:?} ", f.file_name());
@@ -114,9 +113,6 @@ impl QuayYamlConfig {
                         Ok(scrape_config) => {
                             //error!("Opening file {:?}: Ignoring...",f.file_name());
 
-                           
-                          
-
                             self.organization.push(scrape_config);
                         }
                         Err(e) => {
@@ -130,27 +126,23 @@ impl QuayYamlConfig {
             }
         }
 
-
         for org in self.organization.clone() {
-
             if orgs_email.contains(&org.quay_organization_email.clone().to_string()) {
-                warn!("The email for organization {} is already used by another organization", &org.quay_organization);
-                warn!("Skipping organization {:?}",&org.quay_organization);
+                warn!(
+                    "The email for organization {} is already used by another organization",
+                    &org.quay_organization
+                );
+                warn!("Skipping organization {:?}", &org.quay_organization);
                 //self.organization.retain(|value| *value.quay_organization == org.quay_organization);
                 if let Some(pos) = self.organization.iter().position(|x| *x == org) {
                     self.organization.remove(pos);
                     continue;
                 }
-                println!("{:?}",self.organization);
-                
-
-                } else {
-                    orgs_email.push(org.quay_organization_email.clone().to_string());
-                }
-
+                println!("{:?}", self.organization);
+            } else {
+                orgs_email.push(org.quay_organization_email.clone().to_string());
+            }
         }
-        
-
 
         // Adds optional endpoints (replicated_to -> endpoints)
         // Warn if the replicated endpoints already exists as a main Quay endpoint.
@@ -176,7 +168,6 @@ impl QuayYamlConfig {
             }
         }
 
-
         Ok(())
     }
 
@@ -188,11 +179,9 @@ impl QuayYamlConfig {
     pub async fn check_config(&mut self, halt_on_error: bool) -> Result<(), std::io::Error> {
         let mut files = read_dir(self.directory.to_owned()).await?;
 
-        
         // Checking  for duplicate organization email
-        
-        let mut orgs_email:Vec<String> = Vec::new();
 
+        let mut orgs_email: Vec<String> = Vec::new();
 
         while let Some(f) = files.next_entry().await? {
             match f
@@ -209,26 +198,25 @@ impl QuayYamlConfig {
                         serde_yaml::from_reader(f2);
                     match result {
                         Ok(org) => {
-
-                            info!("Organization email {:?} ",org.quay_organization_email);
+                            info!("Organization email {:?} ", org.quay_organization_email);
                             info!("Checking if organization email has duplicates...");
 
-                            if orgs_email.contains(&org.quay_organization_email.clone().to_string()) {
-                            warn!("The email for organization {} is already used by another organization", &org.quay_organization);
-                            warn!("Skipping organization {:?}",&org.quay_organization);
-                            self.organization.retain(|value| *value.quay_organization == org.quay_organization);
-                            println!("{:?}",self.organization);
-                            continue;
-
+                            if orgs_email.contains(&org.quay_organization_email.clone().to_string())
+                            {
+                                warn!("The email for organization {} is already used by another organization", &org.quay_organization);
+                                warn!("Skipping organization {:?}", &org.quay_organization);
+                                self.organization.retain(|value| {
+                                    *value.quay_organization == org.quay_organization
+                                });
+                                println!("{:?}", self.organization);
+                                continue;
                             } else {
                                 orgs_email.push(org.quay_organization_email.clone().to_string());
                             }
 
-                            info!("{:?}",orgs_email);
+                            info!("{:?}", orgs_email);
 
                             info!("Config syntax of {:?} verified.  ", f.file_name());
-
-                            
 
                             let mut quay_endpoints: Vec<String> = Vec::new();
                             let mut quay_mirror_login = QuayMirrorLogin::default();
@@ -612,7 +600,7 @@ impl QuayYamlConfig {
 
     pub async fn create_all(&self) -> Result<(), Box<dyn Error + Send + Sync>> {
         let mut handles_all_organizations = Vec::new();
-        
+
         let mut handles_all_robots = Vec::new();
         let mut handles_all_teams = Vec::new();
         let mut handles_all_repositories = Vec::new();
@@ -645,6 +633,8 @@ impl QuayYamlConfig {
                 continue;
             }
 
+            // Check if associated token organization has permission to create organization.
+
             let mut tmp_mirror_login = vec![];
 
             match &self.quay_login_configs.mirror_repository {
@@ -669,6 +659,18 @@ impl QuayYamlConfig {
                 retries: self.retries,
                 jitter: self.jitter,
             };
+
+            let response = org.create_organization(quay_fn_arguments.clone()).await?;
+
+          
+            match response.status_code {
+                StatusCode::FORBIDDEN => {
+                    let err_str = format!("Token provided for {} Quay endpoint is incorrect or does not have sufficient permissions to create a Quay organization. Ignoring this Quay organization.",org.get_quay_endpoint());
+                    error!("{}", err_str);
+                    continue;
+                }
+                _ => _ = org.delete_organization(quay_fn_arguments.clone()).await?,
+            }
 
             handles_all_organizations.push(org.create_organization(quay_fn_arguments.clone()));
 
@@ -747,7 +749,7 @@ impl QuayYamlConfig {
                         }
                     }
 
-                    for team in &permissions.teams {
+                    while let Some(team) = &permissions.teams {
                         for t in team {
                             handles_all_repositories_permissions.push(
                                 org.grant_team_permission_to_repository(

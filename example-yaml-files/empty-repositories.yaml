@@ -1,4 +1,4 @@
-quay_endpoint: example-registry-quay-quay.apps.ocp.seeweb.local
+quay_endpoint: example-registry-quay-openshift-operators.apps.rosa-b59r5.ltqw.p1.openshiftapps.com
 quay_organization: empty-repositories
 quay_organization_email: vuberti3@redhat.com
 repositories: []

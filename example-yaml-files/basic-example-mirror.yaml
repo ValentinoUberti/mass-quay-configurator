@@ -1,6 +1,6 @@
-quay_endpoint: example-registry-quay-quay.apps.ocp.seeweb.local
+quay_endpoint: example-registry-quay-openshift-operators.apps.rosa-b59r5.ltqw.p1.openshiftapps.com
 quay_organization: basic-example-mirror
-quay_organization_email: vuberti@redhat.com
+quay_organization_email: vuberti1@redhat.com
 repositories:
 - mirror: true
   mirror_params:

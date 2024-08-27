@@ -1,7 +1,7 @@
 ---
 quay_endpoint_login:
-  - quay_endpoint: example-registry-quay-quay.apps.ocp.seeweb.local
-    quay_token:  
+  - quay_endpoint: example-registry-quay-openshift-operators.apps.rosa-b59r5.ltqw.p1.openshiftapps.com
+    quay_token: q96aHF1VW7QdKhVwSDWiMkqGzaOC4czzwl8uwRyq 
 mirror_repository:
   - organization: exampleorg1
     repository: alpine

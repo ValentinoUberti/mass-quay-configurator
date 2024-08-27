@@ -123,13 +123,13 @@ pub trait Actions {
         team: &Repository,
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<QuayResponse, Box<dyn Error + Send + Sync>>;
-
+/*
     async fn team_already_synched(
         &self,
         team: &Team,
         quay_fn_arguments: QuayFnArguments,
     ) -> Result<bool, Box<dyn Error + Send + Sync>>;
-
+*/
     async fn send_request<T>(
         &self,
         endpoint: String,
@@ -702,7 +702,7 @@ impl Actions for OrganizationYaml {
 
         Ok(response.clone())
     }
-
+/* 
     async fn team_already_synched(
         &self,
         team: &Team,
@@ -756,7 +756,7 @@ impl Actions for OrganizationYaml {
 
         Ok(false)
     }
-
+*/
     async fn create_team_sync(
         &self,
         team: &Team,

@@ -438,7 +438,9 @@ Mqc images: quay.io/valeube/mqc
 
 | MQC   | Quay   | Result             |
 |-------|--------|--------------------|
-| 0.0.15| 3.10.4 | :heavy_check_mark: 
+| 0.0.16| 3.12.1 | :heavy_check_mark: | 
+| 0.0.15| 3.11.1 | :heavy_check_mark: | 
+| 0.0.15| 3.10.4 | :heavy_check_mark: | 
 | 0.0.14| 3.10.4 | :heavy_check_mark: |
 | 0.0.13| 3.8.7  | :heavy_check_mark: |
 | 0.0.13| 3.8.6  | :heavy_check_mark: |
